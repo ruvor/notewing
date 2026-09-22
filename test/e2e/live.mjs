@@ -12,6 +12,10 @@ const TOKEN = process.env.NOTEWING_TOKEN;
 const REPO = process.env.NOTEWING_REPO;
 if (!TOKEN || !REPO) throw new Error("Set NOTEWING_TOKEN and NOTEWING_REPO");
 const proxy = process.argv.find((a) => a.startsWith("--proxy="))?.slice(8);
+/** --url=https://perruer.github.io/notewing/ tests a deployed copy instead of dist/. */
+const remote = process.argv.find((a) => a.startsWith("--url="))?.slice(6);
+/** Every run works in its own folder, so the repository can be reused. */
+const D = "run-" + Date.now().toString(36);
 
 const root = resolve("dist");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webmanifest": "application/manifest+json" };
@@ -24,7 +28,7 @@ const server = createServer((req, res) => {
   createReadStream(file).pipe(res);
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
-const ORIGIN = `http://localhost:${server.address().port}`;
+const ORIGIN = remote ? remote.replace(/\/$/, "") : `http://localhost:${server.address().port}`;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let failures = 0;
@@ -112,7 +116,7 @@ const open = async (p) => {
 console.log(`live test on ${REPO}`);
 
 await check("connect to the (empty) repository", async () => {
-  await page.goto(ORIGIN + "/", { waitUntil: "networkidle0" });
+  await page.goto(ORIGIN + "/", { waitUntil: "networkidle0", timeout: 60000 });
   await page.evaluate(() => localStorage.setItem("notewing.settings", JSON.stringify({ lang: "en", mode: "edit", autoSync: false })));
   await page.reload({ waitUntil: "networkidle0" });
   await page.type('.setup-card input[type="password"]', TOKEN);
@@ -123,7 +127,7 @@ await check("connect to the (empty) repository", async () => {
 });
 
 await check("first note in an empty repository", async () => {
-  await page.evaluate(() => (location.hash = "#/new/"));
+  await page.evaluate((h) => (location.hash = h), "#/new/" + D);
   await page.waitForSelector("input.note-title");
   await sleep(300);
   await page.keyboard.type("Hello from Notewing");
@@ -131,11 +135,11 @@ await check("first note in an empty repository", async () => {
   await page.keyboard.type("Первая заметка — live test.");
   await sleep(600);
   await syncNow();
-  await waitFor(async () => (await file("Hello from Notewing.md")) === "Первая заметка — live test.", "file on GitHub");
+  await waitFor(async () => (await file(`${D}/Hello from Notewing.md`)) === "Первая заметка — live test.", "file on GitHub");
 });
 
 await check("note in a folder (Git Data API commit)", async () => {
-  await page.evaluate(() => (location.hash = "#/new/work"));
+  await page.evaluate((h) => (location.hash = h), "#/new/" + D + "/work");
   await page.waitForSelector("input.note-title");
   await sleep(300);
   await page.keyboard.type("Plan");
@@ -143,13 +147,13 @@ await check("note in a folder (Git Data API commit)", async () => {
   await page.keyboard.type("- [ ] one\n- [ ] two");
   await sleep(600);
   await syncNow();
-  await waitFor(async () => (await file("work/Plan.md"))?.startsWith("- [ ] one"), "work/Plan.md");
+  await waitFor(async () => (await file(`${D}/work/Plan.md`))?.startsWith("- [ ] one"), `${D}/work/Plan.md`);
   const commits = await api("GET", `/repos/${REPO}/commits?per_page=1`);
-  assert(commits.body[0].commit.message === "Create work/Plan.md", commits.body[0].commit.message);
+  assert(commits.body[0].commit.message === `Create ${D}/work/Plan.md`, commits.body[0].commit.message);
 });
 
 await check("paste an image, it is committed and shown", async () => {
-  await open("Hello from Notewing.md");
+  await open(`${D}/Hello from Notewing.md`);
   await page.click(".cm-content");
   await page.evaluate(() => {
     const bytes = Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="), (c) => c.charCodeAt(0));
@@ -166,7 +170,7 @@ await check("paste an image, it is committed and shown", async () => {
 });
 
 await check("rename moves the file in one commit", async () => {
-  await open("work/Plan.md");
+  await open(`${D}/work/Plan.md`);
   await page.click("input.note-title");
   await page.keyboard.down("Control");
   await page.keyboard.press("KeyA");
@@ -177,18 +181,18 @@ await check("rename moves the file in one commit", async () => {
   await syncNow();
   await waitFor(async () => {
     const f = await listFiles();
-    return f.includes("work/Plan 2026.md") && !f.includes("work/Plan.md");
+    return f.includes(`${D}/work/Plan 2026.md`) && !f.includes(`${D}/work/Plan.md`);
   }, "renamed");
 });
 
 await check("change made elsewhere is pulled", async () => {
-  const cur = await api("GET", `/repos/${REPO}/contents/work/Plan%202026.md`);
-  await api("PUT", `/repos/${REPO}/contents/work/Plan%202026.md`, {
+  const cur = await api("GET", `/repos/${REPO}/contents/${D}/work/Plan%202026.md`);
+  await api("PUT", `/repos/${REPO}/contents/${D}/work/Plan%202026.md`, {
     message: "Edit on github.com",
     content: Buffer.from("- [x] one\n- [ ] two\n\nedited on github.com").toString("base64"),
     sha: cur.body.sha,
   });
-  await open("work/Plan 2026.md");
+  await open(`${D}/work/Plan 2026.md`);
   await syncNow();
   await waitFor(async () => (await text(".cm-content")).includes("edited on github.com"), "pulled into the editor");
 });
@@ -200,33 +204,33 @@ await check("conflict keeps both versions", async () => {
   await syncNow();
   await sleep(1000);
   await page.setOfflineMode(false);
-  const f = await api("GET", `/repos/${REPO}/contents/work/Plan%202026.md`);
-  await api("PUT", `/repos/${REPO}/contents/work/Plan%202026.md`, {
+  const f = await api("GET", `/repos/${REPO}/contents/${D}/work/Plan%202026.md`);
+  await api("PUT", `/repos/${REPO}/contents/${D}/work/Plan%202026.md`, {
     message: "Concurrent edit",
     content: Buffer.from("remote version").toString("base64"),
     sha: f.body.sha,
   });
   await syncNow();
-  await waitFor(async () => (await listFiles()).some((p) => p.startsWith("work/Plan 2026 (conflict ")), "conflict copy");
-  assert((await file("work/Plan 2026.md")) === "remote version", "remote kept");
+  await waitFor(async () => (await listFiles()).some((p) => p.startsWith(`${D}/work/Plan 2026 (conflict `)), "conflict copy");
+  assert((await file(`${D}/work/Plan 2026.md`)) === "remote version", "remote kept");
 });
 
 await check("history shows the versions", async () => {
-  await open("work/Plan 2026.md");
+  await open(`${D}/work/Plan 2026.md`);
   await page.click('.note-actions button[aria-label="History"]');
   await waitFor(async () => (await page.$$(".history-list button")).length >= 2, "versions listed");
   await page.keyboard.press("Escape");
 });
 
 await check("delete a note", async () => {
-  await open("Hello from Notewing.md");
+  await open(`${D}/Hello from Notewing.md`);
   await page.click('.note-actions button[aria-label="More"]');
   await page.evaluate(() => [...document.querySelectorAll(".menu button")].find((b) => b.textContent.includes("Delete")).click());
   await page.waitForSelector(".modal .btn.danger");
   await page.click(".modal .btn.danger");
   await sleep(500);
   await syncNow();
-  await waitFor(async () => (await file("Hello from Notewing.md")) === null, "deleted on GitHub");
+  await waitFor(async () => (await file(`${D}/Hello from Notewing.md`)) === null, "deleted on GitHub");
 });
 
 await check("local copy survives a reload", async () => {
