@@ -51,6 +51,9 @@ function pwa(): Plugin {
         .replace("__VERSION__", version)
         .replace("__ASSETS__", JSON.stringify(assets, null, 1));
       this.emitFile({ type: "asset", fileName: "sw.js", source });
+      // License texts travel with every copy of the app (also self-hosted ones).
+      this.emitFile({ type: "asset", fileName: "LICENSE.txt", source: readFileSync("LICENSE", "utf8") });
+      this.emitFile({ type: "asset", fileName: "THIRD_PARTY_NOTICES.md", source: readFileSync("THIRD_PARTY_NOTICES.md", "utf8") });
     },
   };
 }

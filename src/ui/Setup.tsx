@@ -5,7 +5,7 @@ import { GitHub, type RepoInfo } from "../core/github";
 import { LANGS, t } from "../i18n";
 import { setSetting, settings } from "../settings";
 import { connect, startDemo } from "../state";
-import { IconCloudOff, IconExternal, IconGitHub, IconSearch, Logo } from "./icons";
+import { IconCloudOff, IconExternal, IconGitHub, IconHeart, IconSearch, Logo } from "./icons";
 import { URLS } from "./Settings";
 
 const NEW_REPO = "https://github.com/new?name=notes&visibility=private&description=My%20notes%20(Notewing)";
@@ -166,9 +166,14 @@ export function Setup() {
           </a>
           . {t("batnoterUsers")}
         </span>
-        <a href={URLS.repo} target="_blank" rel="noopener noreferrer">
-          <IconGitHub size={15} /> {t("sourceCode")}
-        </a>
+        <span class="foot-links">
+          <a href={URLS.repo} target="_blank" rel="noopener noreferrer">
+            <IconGitHub size={15} /> {t("sourceCode")}
+          </a>
+          <a href={URLS.boosty} target="_blank" rel="noopener noreferrer">
+            <IconHeart size={15} /> {t("supportShort")}
+          </a>
+        </span>
       </footer>
     </div>
   );

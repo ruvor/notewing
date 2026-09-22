@@ -16,6 +16,7 @@ export const URLS = {
   issues: "https://github.com/Perruer/notewing/issues",
   boosty: "https://boosty.to/mikio_kuroki/donate",
   original: "https://github.com/batnoter/batnoter",
+  notices: "https://github.com/Perruer/notewing/blob/main/THIRD_PARTY_NOTICES.md",
 };
 export const WALLETS = [
   { name: "USDT / TRX (TRON, TRC-20)", address: "TXUBW4e88SDTfrnJRKfbhYfFcggufbonc1" },
@@ -258,7 +259,10 @@ export function SettingsView() {
           <a href={URLS.original} target="_blank" rel="noopener noreferrer">
             BatNoter
           </a>{" "}
-          (MIT, © 2022 batnoter).
+          (MIT, © 2022 batnoter).{" "}
+          <a href={URLS.notices} target="_blank" rel="noopener noreferrer">
+            {t("licenses")}
+          </a>
         </p>
         <div class="row-actions">
           <a class="btn" href={URLS.repo} target="_blank" rel="noopener noreferrer">

@@ -1932,6 +1932,11 @@ input.note-title:hover {
   color: var(--muted);
 }
 
+.foot-links {
+  display: flex;
+  gap: 18px;
+}
+
 .setup-foot a {
   display: inline-flex;
   align-items: center;
