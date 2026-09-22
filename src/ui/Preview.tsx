@@ -1,6 +1,9 @@
 // Rendered Markdown. Relative images are loaded from the repository (they may be private),
 // relative links to notes open inside the app.
 
+import { LanguageDescription } from "@codemirror/language";
+import { languages } from "@codemirror/language-data";
+import { classHighlighter, highlightCode } from "@lezer/highlight";
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import { renderMarkdown } from "../core/markdown";
 import { IMAGE_EXT, isNote, resolveLink } from "../core/paths";
@@ -19,6 +22,31 @@ const MIME: Record<string, string> = {
   avif: "image/avif",
   bmp: "image/bmp",
 };
+
+/** Syntax colours for fenced code blocks, with the same parsers the editor uses. */
+async function highlight(code: HTMLElement) {
+  const name = [...code.classList].find((c) => c.startsWith("language-"))?.slice(9);
+  const desc = name && LanguageDescription.matchLanguageName(languages, name, true);
+  if (!desc) return;
+  const support = desc.support || (await desc.load());
+  const text = code.textContent || "";
+  const tree = support.language.parser.parse(text);
+  const out = document.createDocumentFragment();
+  highlightCode(
+    text,
+    tree,
+    classHighlighter,
+    (t, classes) => {
+      if (!classes) return out.append(t);
+      const span = document.createElement("span");
+      span.className = classes;
+      span.textContent = t;
+      out.append(span);
+    },
+    () => out.append("\n"),
+  );
+  if (code.textContent === text) code.replaceChildren(out);
+}
 
 async function imageUrl(path: string): Promise<string | null> {
   const repo = session.value?.repo;
@@ -49,6 +77,7 @@ export function Preview({ source, path, onToggleTask, class: cls }: Props) {
     const root = el.current;
     if (!root) return;
     let alive = true;
+    for (const code of root.querySelectorAll<HTMLElement>("pre > code[class*='language-']")) highlight(code).catch(() => {});
     for (const img of root.querySelectorAll("img")) {
       const target = resolveLink(path, img.getAttribute("src") || "");
       if (target === null || !IMAGE_EXT.test(target)) continue;

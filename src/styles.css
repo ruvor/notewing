@@ -1105,6 +1105,44 @@ input.note-title:hover {
   font-size: 0.86em;
 }
 
+.markdown .tok-keyword,
+.markdown .tok-operatorKeyword,
+.markdown .tok-modifier {
+  color: var(--hl-keyword);
+}
+
+.markdown .tok-string,
+.markdown .tok-string2 {
+  color: var(--hl-string);
+}
+
+.markdown .tok-number,
+.markdown .tok-bool,
+.markdown .tok-atom {
+  color: var(--hl-number);
+}
+
+.markdown .tok-comment {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.markdown .tok-variableName.tok-definition,
+.markdown .tok-propertyName.tok-definition {
+  color: var(--hl-function);
+}
+
+.markdown .tok-typeName,
+.markdown .tok-className,
+.markdown .tok-tagName {
+  color: var(--hl-type);
+}
+
+.markdown .tok-propertyName,
+.markdown .tok-attributeName {
+  color: var(--hl-prop);
+}
+
 .markdown blockquote {
   padding: 0.1em 1em;
   border-left: 3px solid var(--accent);

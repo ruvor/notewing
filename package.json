@@ -10,7 +10,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "node --import tsx --test test/unit/repo.test.ts test/unit/ui.test.ts",
-    "test:e2e": "node --import tsx test/e2e/run.mjs --browser=all"
+    "test:e2e": "node --import tsx test/e2e/run.mjs --browser=all",
+    "media": "node scripts/media.mjs",
+    "icons": "node scripts/icons.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",
@@ -33,5 +35,10 @@
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.0"
+  },
+  "homepage": "https://perruer.github.io/notewing/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Perruer/notewing.git"
   }
 }
