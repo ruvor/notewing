@@ -12,7 +12,9 @@
     "test": "node --import tsx --test test/unit/repo.test.ts test/unit/ui.test.ts",
     "test:e2e": "node --import tsx test/e2e/run.mjs --browser=all",
     "media": "node scripts/media.mjs",
-    "icons": "node scripts/icons.mjs"
+    "icons": "node scripts/icons.mjs",
+    "package": "node scripts/package.mjs",
+    "promo": "node scripts/promo.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",
