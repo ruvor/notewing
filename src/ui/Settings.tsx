@@ -10,7 +10,7 @@ import { confirm, prompt } from "./dialogs";
 import { IconCopy, IconExternal, IconGitHub, IconHeart, IconRefresh, Logo } from "./icons";
 import { installPrompt, install } from "../pwa";
 
-export const VERSION = "1.0.0";
+export const VERSION = "2.0.0";
 export const URLS = {
   repo: "https://github.com/Perruer/notewing",
   issues: "https://github.com/Perruer/notewing/issues",

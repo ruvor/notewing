@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.0.0 — 2026-09-22
+## 2.0.0 — 2026-09-22
 
-First release of Notewing, a rewrite of [BatNoter](https://github.com/batnoter/batnoter) that no
+First release of Notewing (2.0.0 continues the version numbers of BatNoter 1.x), a rewrite of [BatNoter](https://github.com/batnoter/batnoter) that no
 longer needs the BatNoter server.
 
 - Runs in the browser and talks to the GitHub REST API directly; sign in with a fine-grained token

@@ -1,6 +1,6 @@
 {
   "name": "notewing",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "Markdown notes in your own GitHub repository. No server, works offline.",
   "license": "MIT",
